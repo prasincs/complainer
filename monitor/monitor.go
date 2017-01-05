@@ -10,7 +10,6 @@ import (
 
 	"github.com/cloudflare/complainer"
 	"github.com/cloudflare/complainer/label"
-	"github.com/cloudflare/complainer/matcher"
 	"github.com/cloudflare/complainer/mesos"
 	"github.com/cloudflare/complainer/reporter"
 	"github.com/cloudflare/complainer/uploader"
@@ -23,12 +22,21 @@ const (
 	timeout = time.Minute
 )
 
+// FailureMatcher is responsible for filtering out undesired Failures for reporting
+type FailureMatcher interface {
+	Match(string) bool
+}
+
+type noopMatcher struct{}
+
+func (c *noopMatcher) Match(_ string) bool { return true }
+
 // Monitor is responsible for routing failed tasks to the configured reporters
 type Monitor struct {
 	name      string
 	mesos     *mesos.Cluster
 	uploader  uploader.Uploader
-	matcher   matcher.FailureMatcher
+	matcher   FailureMatcher
 	reporters map[string]reporter.Reporter
 	defaults  bool
 	recent    map[string]time.Time
@@ -37,17 +45,17 @@ type Monitor struct {
 }
 
 // NewMonitor creates the new monitor with a name, uploader and reporters
-func NewMonitor(name string, cluster *mesos.Cluster, up uploader.Uploader, reporters map[string]reporter.Reporter, defaults bool, match matcher.FailureMatcher) *Monitor {
-	if match == nil {
-		match = &matcher.NoopMatcher{}
+func NewMonitor(name string, cluster *mesos.Cluster, up uploader.Uploader, reporters map[string]reporter.Reporter, defaults bool, matcher FailureMatcher) *Monitor {
+	if matcher == nil {
+		matcher = &noopMatcher{}
 	}
 
 	return &Monitor{
 		name:      name,
 		mesos:     cluster,
 		uploader:  up,
-		matcher:   match,
 		reporters: reporters,
+		matcher:   matcher,
 		defaults:  defaults,
 	}
 }

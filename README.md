@@ -53,10 +53,17 @@ These settings can be applied by env vars as well:
 
 If you're in the situation where you have multiple marathons running against
 a mesos, and want to segregate out which failures go where, the following
+<<<<<<< HEAD
 options are of interest. Each option can be specified multiple times.
 
 * `framework-whitelist` - This is a regex option; if given, the failures
   framework must match at least one whitelist. If no whitelist is specified,
+=======
+options are of interest.  Each option can be specified multiple times.
+
+* `framework-whitelist` - This is a regex option; if given, the failures
+  framework must match at least one whitelist.  If no whitelist is specified,
+>>>>>>> Add the ability to filter based on formatter name.
   then it's treated as if '.*' had been passed- all failures are whitelisted
   as long as they don't match a blacklist.
 * `framework-blacklist` - This is a regex option; if given, any failure that

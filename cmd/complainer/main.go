@@ -10,12 +10,30 @@ import (
 	"time"
 
 	"github.com/cloudflare/complainer/flags"
-	"github.com/cloudflare/complainer/matcher"
 	"github.com/cloudflare/complainer/mesos"
 	"github.com/cloudflare/complainer/monitor"
 	"github.com/cloudflare/complainer/reporter"
 	"github.com/cloudflare/complainer/uploader"
 )
+
+type regexMatcher struct {
+	whitelist []*regexp.Regexp
+	blacklist []*regexp.Regexp
+}
+
+func (r *regexMatcher) Match(name string) bool {
+	for _, regex := range r.blacklist {
+		if regex.MatchString(name) {
+			return false
+		}
+	}
+	for _, regex := range r.whitelist {
+		if regex.MatchString(name) {
+			return true
+		}
+	}
+	return len(r.whitelist) == 0
+}
 
 type regexArrayFlags []*regexp.Regexp
 
@@ -73,7 +91,7 @@ func main() {
 		log.Fatalf("Cannot create requested reporters: %s", err)
 	}
 
-	matcher := matcher.RegexMatcher{Whitelist: whitelist, Blacklist: blacklist}
+	matcher := regexMatcher{whitelist: whitelist, blacklist: blacklist}
 	cluster := mesos.NewCluster(strings.Split(*masters, ","))
 
 	m := monitor.NewMonitor(*name, cluster, up, reporters, *d, &matcher)
