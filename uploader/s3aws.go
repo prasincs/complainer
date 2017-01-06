@@ -71,7 +71,6 @@ func newS3AwsUploader(accessKey, secretKey, region, bucket, prefix string, timeo
 
 func (u *s3AwsUploader) Upload(failure complainer.Failure, stdoutURL, stderrURL string) (string, string, error) {
 	buf := bytes.NewBuffer([]byte{})
-	err := u.prefix.Execute(buf, map[string]interface{}{"failure": failure})
 	prefix := string(buf.Bytes())
 
 	stdout, err := download(stdoutURL)
